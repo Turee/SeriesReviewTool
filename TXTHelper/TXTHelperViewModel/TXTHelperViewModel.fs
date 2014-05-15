@@ -47,10 +47,13 @@ type TXTFileVM =
 
     member this.DisplayString = this.fileName
     member this.Background = 
-        if this.isDiscarded then
-            System.Windows.Media.Color.FromArgb(127uy,255uy,0uy,0uy)
-        else
-            System.Windows.Media.Color.FromArgb(127uy,0uy,255uy,0uy)
+        let color = 
+            if this.isDiscarded then
+                System.Windows.Media.Color.FromArgb(127uy,255uy,0uy,0uy)
+            else
+                System.Windows.Media.Color.FromArgb(127uy,0uy,255uy,0uy)
+        new System.Windows.Media.SolidColorBrush(color)
+
     static member CreateAndSave (path:string) (vm:ExcelFileVM) (discard:bool) =
 
         let fileName = 

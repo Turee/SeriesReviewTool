@@ -10,20 +10,22 @@
             <ColumnDefinition Width="220"></ColumnDefinition>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
-            <RowDefinition Height="400"></RowDefinition>
             <RowDefinition></RowDefinition>
+            <RowDefinition Height="70"></RowDefinition>
         </Grid.RowDefinitions>
-        <oxy:Plot Grid.Column="1" Title="Current series" Model="{Binding Path=CurrentPlotModel}"></oxy:Plot>
+        <oxy:Plot Title="Current series" Model="{Binding Path=CurrentPlotModel}" Grid.ColumnSpan="2" Margin="215,0,5,0"/>
         <Grid Grid.Column="0" >
             <Grid.RowDefinitions>
                 <RowDefinition Height="30"></RowDefinition>
                 <RowDefinition></RowDefinition>
                 <RowDefinition Height="30"></RowDefinition>
             </Grid.RowDefinitions>
-            <ListView Grid.Row="1" ItemsSource="{Binding Path=ExcelFiles,UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding Path=SelectedExcelFile}" SelectedIndex="{Binding Path=SelectedFileIndex,Mode=OneWay,UpdateSourceTrigger=PropertyChanged}">
+            <ListView Grid.Row="1" FontSize="10" ItemsSource="{Binding Path=ExcelFiles,UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding Path=SelectedExcelFile}" SelectedIndex="{Binding Path=SelectedFileIndex,Mode=OneWay,UpdateSourceTrigger=PropertyChanged}">
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <TextBlock Text="{Binding Path=DisplayString}"></TextBlock>
+                        <Border>
+                            <TextBlock Text="{Binding Path=DisplayString}"></TextBlock>
+                        </Border>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
@@ -38,23 +40,25 @@
             </Grid.RowDefinitions>
 
             <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"  Grid.Row="0" Text="{Binding Path=ReviewedSeriesText}"></TextBlock>
-            <ListView Grid.Row="1" ItemsSource="{Binding Path=TextFiles,UpdateSourceTrigger=PropertyChanged}">
-                <ListView.ItemTemplate>
+            <ListView Grid.Row="1" FontSize="10" ItemsSource="{Binding Path=TextFiles,UpdateSourceTrigger=PropertyChanged}">
+                <ListView.ItemTemplate >
                     <DataTemplate>
-                        <TextBlock Background="{Binding Path=Background}" Text="{Binding Path=DisplayString}"></TextBlock>
+                        <Border BorderThickness="0" Background="{Binding Path=Background}">
+                            <TextBlock Text="{Binding Path=DisplayString}"></TextBlock>
+                        </Border>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>
             <Button Grid.Row="2" Command="{Binding Path=RefreshTextDirectoryCommand}">Refresh</Button>
-            
+
         </Grid>
-        
+
         <Grid Grid.Column="0" Grid.Row="1" >
             <Grid.RowDefinitions>
                 <RowDefinition></RowDefinition>
                 <RowDefinition></RowDefinition>
             </Grid.RowDefinitions>
-            <TextBlock Text="{Binding Path=InPath,UpdateSourceTrigger=PropertyChanged}"></TextBlock>
+            <TextBlock TextWrapping="Wrap" Text="{Binding Path=InPath,UpdateSourceTrigger=PropertyChanged}"></TextBlock>
             <Button Grid.Row="1" Margin="5,5,5,5"  Command="{Binding Path=SelectExcelDirectoryCommand}">Select xlsx directory</Button>
         </Grid>
 
