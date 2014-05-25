@@ -6,6 +6,7 @@ open System
 open Microsoft.WindowsAPICodePack.Dialogs;
 open ExcelPackageF
 open System.Windows.Input
+open ExcelFiles
 
 module Helpers=
     let createCommand action canExecute=
@@ -21,23 +22,7 @@ module Helpers=
 
     
 
-type ExcelFileVM=
-    {
-        filePath : string
-        file : System.IO.FileInfo
-        seriesName : string
-        
-        seriesXData : double array
-        seriesYData : double array
-    }
 
-    member this.DisplayString=
-        sprintf "%s - %s" (this.file.Name) (this.seriesName)
-
-    member this.TextFileName =
-         sprintf "%s_%s.txt"  this.file.Name this.seriesName |> fun x -> x.Replace(" ","_")
-    member this.DiscardedFileName =
-        sprintf "%s_%s.txt.discarded"  this.file.Name this.seriesName  |> fun x -> x.Replace(" ","_")
 
 type TXTFileVM =
     {
@@ -131,60 +116,20 @@ type TXTHelperViewModel() as this=
         inPath := path
         this.NotifyPropertyChanged "RefreshExcelDirectoryCommand"
         let di = new System.IO.DirectoryInfo(path)
-        let files = di.GetFiles("*.xlsx")
+        let files = Array.append (di.GetFiles("*.xlsx")) (di.GetFiles("*.xls"))
 
 
-        let parseFile (file:IO.FileInfo)=
-            let fileWithPath = System.IO.Path.Combine(path,file.Name)
-
-            let wsheet = ExcelPackageF.Excel.getWorksheetByIndex 1 fileWithPath
-
-            let xdata =
-                seq {
-                    for row in (Excel.getColumn 1 wsheet) |> Seq.skip 1 |> Seq.takeWhile (String.IsNullOrEmpty >> not) do
-                        yield (Double.parse(row.Replace(",",".")))
-
-                }
-                |> Seq.map (Option.getOrElse Double.NaN)
-                |> Array.ofSeq
-            let colsWithDataAndHeaders = 
-                Excel.getRow 1 wsheet
-                |> Seq.skip 1
-                |> Seq.takeWhile (fun x -> x <> null && x <> "")
-                |> Seq.mapi (fun i header -> (i + 2,header))
-                |> List.ofSeq
-
-
-
-            let yDatas =
-                seq {
-                    for (coli,header) in colsWithDataAndHeaders do
-                        let ydata = 
-                            Excel.getColumn coli wsheet
-                            |> Seq.skip 1
-                            |> Seq.takeWhile (String.IsNullOrEmpty >> not)
-                            |> Seq.map (fun v ->
-                                Double.parse (v.Replace(",","."))
-                            )
-                            |> Seq.map (Option.getOrElse Double.NaN)
-                        yield(header,ydata |> Array.ofSeq)
-                }
-            seq {
-                for (header,ydata) in yDatas do
-                    yield
-                        {
-                            ExcelFileVM.filePath = fileWithPath
-                            ExcelFileVM.file = file
-                            seriesName = header
-                            seriesXData = xdata
-                            seriesYData = ydata
-                        }
-            }
+        
 
         files
         |> Seq.map (fun file -> 
                 try 
-                    parseFile file 
+                    match file.Extension with
+                    |".xls" ->
+                        parseFileXls file
+                    |".xlsx" ->
+                        parseFileXlsx file 
+                    |_ -> Seq.empty
                 with
                     |e ->
                         System.Windows.MessageBox.Show(sprintf "Excel file: %s was invalid!! \n Message: %s" (file.Name) e.Message) |> ignore
@@ -201,8 +146,10 @@ type TXTHelperViewModel() as this=
     let loadTXTFiles (path:string)=
         outPath := path
         this.NotifyPropertyChanged "RefreshTextDirectoryCommand"
+    
         let di = new System.IO.DirectoryInfo(path)
         let files = Seq.concat [di.GetFiles("*.txt");di.GetFiles("*.discarded")]
+    
         files
         |> Seq.sortBy (fun fi -> -fi.CreationTime.Ticks)
         |> Seq.map (fun f ->
@@ -335,9 +282,9 @@ type TXTHelperViewModel() as this=
     member this.ReviewedSeriesText
         with get()=
             sprintf "%i Accepted / %i Discarded" (!textFiles |> Seq.filter (fun tf -> tf.isDiscarded |> not) |> Seq.length) (!textFiles |> Seq.filter (fun tf -> tf.isDiscarded) |> Seq.length)
+    
     member this.RefreshTextDirectoryCommand
         with get()=
-
             Helpers.createCommand
                 (fun _ ->
                     if (!inPath <> "") then
@@ -350,7 +297,6 @@ type TXTHelperViewModel() as this=
 
     member this.RefreshExcelDirectoryCommand
         with get()=
-
             Helpers.createCommand
                 (fun _ ->
                     loadExcelFiles (!inPath)
