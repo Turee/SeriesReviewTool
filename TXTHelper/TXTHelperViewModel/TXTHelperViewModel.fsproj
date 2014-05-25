@@ -97,6 +97,18 @@
       <HintPath>..\packages\FSharpx.TypeProviders.Xrm.1.8.41\lib\40\FSharpx.TypeProviders.Xrm.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="MathNet.Numerics">
+      <HintPath>..\packages\MathNet.Numerics.2.6.0\lib\net40\MathNet.Numerics.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MathNet.Numerics.FSharp">
+      <HintPath>..\packages\MathNet.Numerics.FSharp.2.6.0\lib\net40\MathNet.Numerics.FSharp.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="MathNet.Numerics.IO">
+      <HintPath>..\packages\MathNet.Numerics.2.6.0\lib\net40\MathNet.Numerics.IO.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.Crm.Services.Utility">
       <HintPath>..\packages\FSharpx.TypeProviders.Xrm.1.8.41\lib\40\Microsoft.Crm.Services.Utility.dll</HintPath>
       <Private>True</Private>

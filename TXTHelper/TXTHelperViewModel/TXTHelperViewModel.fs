@@ -6,6 +6,7 @@ open System
 open Microsoft.WindowsAPICodePack.Dialogs;
 open ExcelPackageF
 open System.Windows.Input
+open OxyPlot.Annotations
 open ExcelFiles
 
 module Helpers=
@@ -52,7 +53,7 @@ type TXTFileVM =
 
         use file = new System.IO.StreamWriter(withpath)
         let str = 
-            Seq.zip vm.seriesXData vm.seriesYData
+            vm.seriesXsYs
             |> Seq.map (fun (x,y) ->
                 sprintf "%s\t%s" (string x) (string y)
             )
@@ -76,11 +77,104 @@ type TXTHelperViewModel() as this=
     let exelFiles = ref List.empty
     let textFiles = ref List.empty
     let currentPlotModel = ref None
+    let currentPlotModelHz = ref None
     let selectedExcelVM : ExcelFileVM option ref = ref None
 
     let updateSeriesCounts()=
         this.NotifyPropertyChanged "SeriesToReviewText"
         this.NotifyPropertyChanged "ReviewedSeriesText"
+
+    let setPlotModelNull() = currentPlotModel := None ; this.NotifyPropertyChanged "CurrentPlotModel"
+    let setHzPlotModelNull() = currentPlotModelHz := None ; this.NotifyPropertyChanged "CurrentPlotModelHz"
+
+    let updatePlotModelHz (fileVm:ExcelFileVM) (xmin:float) (xmax:float)=
+        
+        let plotModelHz = new OxyPlot.PlotModel()
+        let series = new OxyPlot.Series.LineSeries()
+
+        let dataFiltered = (fileVm.seriesXsYs |> Array.filter (fun (x,y) ->  xmin <= x && x <= xmax) ) 
+        let data = toFrequencyPlane dataFiltered
+        if Seq.isEmpty data |> not then
+            
+            data
+            |> Seq.iter (fun (x,y) ->
+                let point = new OxyPlot.DataPoint(x,y)
+                series.Points.Add point
+            )
+
+            plotModelHz.Series.Add series
+            currentPlotModelHz := Some <| plotModelHz
+
+            let bpm = Seq.maxBy snd data |> fst
+
+            let bpmAnnotation = new OxyPlot.Annotations.LineAnnotation()
+            bpmAnnotation.Type <- OxyPlot.Annotations.LineAnnotationType.Vertical
+            bpmAnnotation.X <- bpm
+            bpmAnnotation.Color <- OxyPlot.OxyColor.FromRgb(250uy,0uy,0uy)
+            //bpmAnnotation.TextLinePosition <- 0.5
+            bpmAnnotation.Text <- (sprintf "%s BPM" (string <| Math.Round(bpm,0)))
+            bpmAnnotation.FontWeight <- OxyPlot.FontWeights.Bold
+            bpmAnnotation.FontSize <- 18.0
+            bpmAnnotation.TextOrientation <- OxyPlot.Annotations.AnnotationTextOrientation.Vertical
+
+            plotModelHz.Annotations.Add bpmAnnotation
+            this.NotifyPropertyChanged "CurrentPlotModelHz"
+        else
+            setHzPlotModelNull()
+
+    let selectRangeHandler (model:OxyPlot.PlotModel) (file:ExcelFileVM) =
+        
+        let sxmax = (Seq.maxBy fst file.seriesXsYs) |> fst
+        let sxmin = Seq.minBy fst file.seriesXsYs |> fst
+
+        let ra = new RectangleAnnotation()
+        ra.MinimumX <-  0.0
+        ra.MaximumX <-  0.0
+        ra.Fill <- OxyPlot.OxyColor.FromArgb(90uy,0x66uy,0xCCuy,0xCCuy)
+        let range = ra
+        model.Annotations.Add(ra)
+        model.InvalidatePlot(true)
+                
+        let startx = ref Double.NaN
+
+        ra.FontSize <- 16.0
+        ra.FontWeight <- OxyPlot.FontWeights.Bold
+
+        model.MouseDown.Add (fun (ea) ->    
+            if (ea.ChangedButton = OxyPlot.OxyMouseButton.Left) then
+                
+                let r = range
+                startx := r.InverseTransform(ea.Position).X
+                r.MinimumX <- !startx
+                r.MaximumX <- !startx
+                model.InvalidatePlot(true)
+                ea.Handled <- true
+            else ()
+
+        )
+
+        model.MouseMove.Add (fun ea ->
+            match !startx with
+            |sx when not <| Double.IsNaN sx ->
+                let r = range
+                let x = r.InverseTransform(ea.Position).X;
+                r.MinimumX <- Math.Min(x,sx)
+                r.MaximumX <- Math.Max(x,sx)
+                ra.Text <- (sprintf "FFT Window [%fs .. %fs]" r.MinimumX r.MaximumX)
+                
+                model.InvalidatePlot(true)
+                ea.Handled <- true
+                
+            |_ -> ()
+        )
+        model.MouseUp.Add (fun ea ->
+            startx := Double.NaN
+            ra.Text <- ""
+            if range.MaximumX - range.MinimumX = 0.0 then
+                updatePlotModelHz (file) (sxmin) (sxmax)
+            else
+                updatePlotModelHz (file) (range.MinimumX) (range.MaximumX)
+        )
 
     let filterExelFiles()=
         exelFiles :=
@@ -91,24 +185,31 @@ type TXTHelperViewModel() as this=
         this.NotifyPropertyChanged "ExcelFiles"
         updateSeriesCounts()
 
+   
+
     let updatePlotModel(fileVm:ExcelFileVM)=
         
-        let plotModel = 
-            new OxyPlot.PlotModel()
+        if Seq.isEmpty fileVm.seriesXsYs then
+            setPlotModelNull()
+        else
+            let plotModel = 
+                new OxyPlot.PlotModel()
+            selectRangeHandler (plotModel) fileVm
 
-        let series = new OxyPlot.Series.LineSeries(fileVm.DisplayString)
+            let series = new OxyPlot.Series.LineSeries(fileVm.DisplayString)
         
-        Seq.zip fileVm.seriesXData fileVm.seriesYData
-        |> Seq.iter (fun (x,y) ->
-            let point = new OxyPlot.DataPoint(x,y)
-            series.Points.Add point
-        )
+            fileVm.seriesXsYs
+            |> Seq.sortBy fst
+            |> Seq.iter (fun (x,y) ->
+                let point = new OxyPlot.DataPoint(x,y)
+                series.Points.Add point
+            )
             
-        plotModel.Series.Add series
-        currentPlotModel := Some <| plotModel
-        this.NotifyPropertyChanged "CurrentPlotModel"
-        
-    let setPlotModelNull() = currentPlotModel := None ; this.NotifyPropertyChanged "CurrentPlotModel"
+            plotModel.Series.Add series
+            currentPlotModel := Some <| plotModel
+            this.NotifyPropertyChanged "CurrentPlotModel"
+            updatePlotModelHz fileVm (Seq.minBy fst fileVm.seriesXsYs |> fst) (Seq.maxBy fst fileVm.seriesXsYs |> fst)
+
 
 
 
@@ -117,9 +218,6 @@ type TXTHelperViewModel() as this=
         this.NotifyPropertyChanged "RefreshExcelDirectoryCommand"
         let di = new System.IO.DirectoryInfo(path)
         let files = Array.append (di.GetFiles("*.xlsx")) (di.GetFiles("*.xls"))
-
-
-        
 
         files
         |> Seq.map (fun file -> 
@@ -181,10 +279,14 @@ type TXTHelperViewModel() as this=
 
         Helpers.createCommand action canexecute
 
-
+        
     member this.CurrentPlotModel
         with get() = 
             match !currentPlotModel with |Some pm -> pm :> obj |_ -> null
+
+    member this.CurrentPlotModelHz
+        with get() = 
+            match !currentPlotModelHz with |Some pm -> pm :> obj |_ -> null
 
     member this.ExcelFiles
         with get()= !exelFiles

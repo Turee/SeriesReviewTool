@@ -11,8 +11,7 @@ module ExcelFiles=
             file : System.IO.FileInfo
             seriesName : string
         
-            seriesXData : double array
-            seriesYData : double array
+            seriesXsYs : (double*double) array
         }
 
         member this.DisplayString=
@@ -67,12 +66,42 @@ module ExcelFiles=
                             ExcelFileVM.filePath = file.FullName
                             ExcelFileVM.file = file
                             seriesName = header
-                            seriesXData = xdata
-                            seriesYData = ydata
-                        }
+                            seriesXsYs = Array.zip xdata ydata
+                         }
             }
 
-    
+    let toFrequencyPlane (xsYs:(float*float)[]) =
+        if Array.length xsYs < 2 then
+            Array.empty
+        else
+            let xs = Seq.map fst xsYs
+            let ys = Seq.map snd xsYs
+        
+            let interpolation = new MathNet.Numerics.Interpolation.Algorithms.LinearSplineInterpolation(xs |> Seq.sort |> Seq.toArray,ys |> Seq.toArray)
+
+            let tmin = Seq.min xs
+            let tmax = Seq.max xs
+            let deltat = tmax - tmin
+
+            //ensure even sample rate
+            let delta = deltat/(xsYs.Length*4 |> double)
+            let xsys= 
+                seq {
+                    for x in tmin..delta..tmax do 
+                        yield (x,interpolation.Interpolate(x))
+                }
+
+            let complexs = Seq.map (fun (_,y) -> new Numerics.Complex(y,0.0)) xsys |> Array.ofSeq
+        
+            let deltaF = 1.0/deltat
+            MathNet.Numerics.IntegralTransforms.Transform.FourierForward(complexs)
+
+            let toBpm i = i*60.0
+            let pm = Seq.mapi (fun i (x:Numerics.Complex) -> (deltaF*(double i) |> toBpm ,x.Magnitude)) complexs |> Array.ofSeq
+            pm 
+            |> fun (x:(float*float)[]) -> x.[0..(x.Length/2+1)]
+            |> Array.filter (fun (x,_) -> 0.0 < x  && x < 300.0)
+            |> Array.sortBy fst
 
     let parseFileXls (file:IO.FileInfo) =
         let workBook = ExcelLibrary.SpreadSheet.Workbook.Load(file.FullName)
@@ -89,7 +118,12 @@ module ExcelFiles=
             |> Array.ofSeq
         let scale = 1.0/1000.0
         let xdata = Seq.map (fun (row:float[]) -> row.[0] |> (*) scale ) datas 
-        let yDatas = Seq.map (fun i -> Seq.map (fun (row:float[]) -> row.[i] |> (*) scale)  datas) [1..(datas.[0].Length-1)]
+        let yDatas = 
+            [1..(datas.[0].Length-1)]
+            |> Seq.map (fun i -> 
+                datas
+                |> Seq.map (fun (row:float[]) -> row.[i] |> (*) scale)  
+            ) 
         
         yDatas
         |> Seq.mapi (fun i ydata ->
@@ -98,8 +132,7 @@ module ExcelFiles=
                 ExcelFileVM.filePath = file.FullName
                 ExcelFileVM.file = file
                 seriesName = header
-                seriesXData = xdata |> Array.ofSeq
-                seriesYData = ydata |> Array.ofSeq
+                seriesXsYs = Seq.zip xdata ydata |> Array.ofSeq
             }
         )
         
