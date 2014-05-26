@@ -21,10 +21,6 @@ module Helpers=
         }
 
 
-    
-
-
-
 type TXTFileVM =
     {
         fileName : string
@@ -126,7 +122,7 @@ type TXTHelperViewModel() as this=
         
         let sxmax = (Seq.maxBy fst file.seriesXsYs) |> fst
         let sxmin = Seq.minBy fst file.seriesXsYs |> fst
-
+        
         let ra = new RectangleAnnotation()
         ra.MinimumX <-  0.0
         ra.MaximumX <-  0.0
