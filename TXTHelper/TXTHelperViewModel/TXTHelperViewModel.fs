@@ -220,18 +220,18 @@ type TXTHelperViewModel() as this=
                 try 
                     match file.Extension with
                     |".xls" ->
-                        parseFileXls file
+                        parseFileXls file |> List.ofSeq
                     |".xlsx" ->
-                        parseFileXlsx file 
-                    |_ -> Seq.empty
+                        parseFileXlsx file  |> List.ofSeq
+                    |_ -> List.empty
                 with
                     |e ->
                         System.Windows.MessageBox.Show(sprintf "Excel file: %s was invalid!! \n Message: %s" (file.Name) e.Message) |> ignore
-                        Seq.empty
+                        List.empty
         )
-        |> Seq.concat
+        |> List.concat
         |> fun files ->
-            exelFiles := Seq.toList files
+            exelFiles := files
 
         this.NotifyPropertyChanged "InPath"
         filterExelFiles()
