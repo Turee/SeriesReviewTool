@@ -79,18 +79,19 @@ module ExcelFiles=
         
             let interpolation = new MathNet.Numerics.Interpolation.Algorithms.LinearSplineInterpolation(xs |> Seq.sort |> Seq.toArray,ys |> Seq.toArray)
 
-            let tmin = Seq.min xs
-            let tmax = Seq.max xs
-            let deltat = tmax - tmin
-
             //ensure even sample rate
-            let delta = deltat/(xsYs.Length*4 |> double)
+            let tmin = xsYs.[0] |> fst
+            let tmax = xsYs.[xsYs.Length-1] |> fst
+
+            let deltat = tmax - tmin
+            let delta = deltat/(xsYs.Length |> double)
             let xsys= 
                 seq {
                     for x in tmin..delta..tmax do 
                         yield (x,interpolation.Interpolate(x))
                 }
 
+            
             let complexs = Seq.map (fun (_,y) -> new Numerics.Complex(y,0.0)) xsys |> Array.ofSeq
         
             let deltaF = 1.0/deltat
