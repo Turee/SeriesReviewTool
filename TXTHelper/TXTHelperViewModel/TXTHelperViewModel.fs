@@ -83,26 +83,22 @@ type TXTHelperViewModel() as this=
     let setPlotModelNull() = currentPlotModel := None ; this.NotifyPropertyChanged "CurrentPlotModel"
     let setHzPlotModelNull() = currentPlotModelHz := None ; this.NotifyPropertyChanged "CurrentPlotModelHz"
 
-    let updatePlotModelHz (fileVm:ExcelFileVM) (xmin:float) (xmax:float)=
+    let updatePlotModelHz (freqData:(double*double) array) (bpm:double)  =
         
         let plotModelHz = new OxyPlot.PlotModel()
         let series = new OxyPlot.Series.LineSeries()
 
-        let dataFiltered = (fileVm.seriesXsYs |> Array.filter (fun (x,y) ->  xmin <= x && x <= xmax) ) 
-        let data = toFrequencyPlane dataFiltered
-        if Seq.isEmpty data |> not then
-            
-            data
-            |> Seq.iter (fun (x,y) ->
-                let point = new OxyPlot.DataPoint(x,y)
-                series.Points.Add point
-            )
+        if Seq.isEmpty freqData |> not then
 
             plotModelHz.Series.Add series
             currentPlotModelHz := Some <| plotModelHz
 
-            let bpm = Seq.maxBy snd data |> fst
-
+            series.Color <- OxyPlot.OxyColor.FromArgb(200uy,0uy,0uy,0uy)
+            freqData
+            |> Seq.iter (fun (x,y) ->
+                let point = new OxyPlot.DataPoint(x,y)
+                series.Points.Add point
+            )
             let bpmAnnotation = new OxyPlot.Annotations.LineAnnotation()
             bpmAnnotation.Type <- OxyPlot.Annotations.LineAnnotationType.Vertical
             bpmAnnotation.X <- bpm
@@ -114,32 +110,64 @@ type TXTHelperViewModel() as this=
             bpmAnnotation.TextOrientation <- OxyPlot.Annotations.AnnotationTextOrientation.Vertical
 
             plotModelHz.Annotations.Add bpmAnnotation
-            this.NotifyPropertyChanged "CurrentPlotModelHz"
+            plotModelHz.InvalidatePlot(true)
         else
             setHzPlotModelNull()
+
+    let insertPulseAnnotations (bpm:float) (fileVm:ExcelFileVM)=
+        match !currentPlotModel with
+        |Some (plotmodel:OxyPlot.PlotModel) ->
+
+            let annotations = Analysis.getPulseAnnotations bpm fileVm.seriesXsYs 
+            
+            for ann in annotations do
+                let pulseAnnotation = new OxyPlot.Annotations.LineAnnotation()
+                pulseAnnotation.Type <- OxyPlot.Annotations.LineAnnotationType.Vertical
+                pulseAnnotation.X <- ann
+                pulseAnnotation.Color <- OxyPlot.OxyColor.FromArgb(127uy,250uy,0uy,0uy)
+                plotmodel.Annotations.Add(pulseAnnotation)
+            plotmodel.InvalidatePlot(true)
+        |None -> ()
+
+    let updateFrequencyChartAndAnnotations (xmin:float) (xmax:float) (fileVm:ExcelFileVM)=
+        let dataFiltered = (fileVm.seriesXsYs |> Array.filter (fun (x,y) ->  xmin <= x && x <= xmax) ) 
+        let freqData = Analysis.toFrequencyPlane dataFiltered
+        if Seq.isEmpty freqData |> not then
+            let bpm = Seq.maxBy snd freqData |> fst
+            Option.iter (fun (pm:OxyPlot.PlotModel) -> pm.Annotations.Clear()) !currentPlotModel
+            updatePlotModelHz freqData bpm
+            insertPulseAnnotations bpm fileVm
+
+            this.NotifyPropertyChanged "CurrentPlotModelHz"
+            this.NotifyPropertyChanged "CurrentPlotModel"
+        else
+            ()
 
     let selectRangeHandler (model:OxyPlot.PlotModel) (file:ExcelFileVM) =
         
         let sxmax = (Seq.maxBy fst file.seriesXsYs) |> fst
         let sxmin = Seq.minBy fst file.seriesXsYs |> fst
         
-        let ra = new RectangleAnnotation()
-        ra.MinimumX <-  0.0
-        ra.MaximumX <-  0.0
-        ra.Fill <- OxyPlot.OxyColor.FromArgb(90uy,0x66uy,0xCCuy,0xCCuy)
-        let range = ra
-        model.Annotations.Add(ra)
-        model.InvalidatePlot(true)
-                
+        let addRectangleAnnotation()=
+            let ra = new RectangleAnnotation()
+            ra.MinimumX <-  0.0
+            ra.MaximumX <-  0.0
+            ra.Fill <- OxyPlot.OxyColor.FromArgb(90uy,0x66uy,0xCCuy,0xCCuy)
+            model.Annotations.Add(ra)
+            ra.FontSize <- 16.0
+            ra.FontWeight <- OxyPlot.FontWeights.Bold
+            model.InvalidatePlot(true)
+            ra
+        let rectangleAnnotation = ref <| addRectangleAnnotation()  
+        
         let startx = ref Double.NaN
 
-        ra.FontSize <- 16.0
-        ra.FontWeight <- OxyPlot.FontWeights.Bold
 
         model.MouseDown.Add (fun (ea) ->    
             if (ea.ChangedButton = OxyPlot.OxyMouseButton.Left) then
-                
-                let r = range
+                if Seq.exists (fun ann -> ann = (!rectangleAnnotation :> OxyPlot.Annotations.Annotation)) model.Annotations |> not then
+                    rectangleAnnotation := addRectangleAnnotation()
+                let r = !rectangleAnnotation
                 startx := r.InverseTransform(ea.Position).X
                 r.MinimumX <- !startx
                 r.MaximumX <- !startx
@@ -152,11 +180,11 @@ type TXTHelperViewModel() as this=
         model.MouseMove.Add (fun ea ->
             match !startx with
             |sx when not <| Double.IsNaN sx ->
-                let r = range
+                let r = !rectangleAnnotation
                 let x = r.InverseTransform(ea.Position).X;
                 r.MinimumX <- Math.Min(x,sx)
                 r.MaximumX <- Math.Max(x,sx)
-                ra.Text <- (sprintf "FFT Window [%fs .. %fs]" r.MinimumX r.MaximumX)
+                (!rectangleAnnotation).Text <- (sprintf "FFT Window [%fs .. %fs]" r.MinimumX r.MaximumX)
                 
                 model.InvalidatePlot(true)
                 ea.Handled <- true
@@ -164,12 +192,14 @@ type TXTHelperViewModel() as this=
             |_ -> ()
         )
         model.MouseUp.Add (fun ea ->
+            let range = !rectangleAnnotation
             startx := Double.NaN
-            ra.Text <- ""
+            range.Text <- ""
             if range.MaximumX - range.MinimumX = 0.0 then
-                updatePlotModelHz (file) (sxmin) (sxmax)
+                updateFrequencyChartAndAnnotations sxmin sxmax file
             else
-                updatePlotModelHz (file) (range.MinimumX) (range.MaximumX)
+                updateFrequencyChartAndAnnotations range.MinimumX range.MaximumX file
+                
         )
 
     let filterExelFiles()=
@@ -193,7 +223,8 @@ type TXTHelperViewModel() as this=
             selectRangeHandler (plotModel) fileVm
 
             let series = new OxyPlot.Series.LineSeries(fileVm.DisplayString)
-        
+            series.Color <- OxyPlot.OxyColor.FromArgb(200uy,0uy,0uy,0uy)
+
             fileVm.seriesXsYs
             |> Seq.sortBy fst
             |> Seq.iter (fun (x,y) ->
@@ -204,8 +235,7 @@ type TXTHelperViewModel() as this=
             plotModel.Series.Add series
             currentPlotModel := Some <| plotModel
             this.NotifyPropertyChanged "CurrentPlotModel"
-            updatePlotModelHz fileVm (Seq.minBy fst fileVm.seriesXsYs |> fst) (Seq.maxBy fst fileVm.seriesXsYs |> fst)
-
+            updateFrequencyChartAndAnnotations (Seq.minBy fst fileVm.seriesXsYs |> fst) (Seq.maxBy fst fileVm.seriesXsYs |> fst) fileVm 
 
 
 

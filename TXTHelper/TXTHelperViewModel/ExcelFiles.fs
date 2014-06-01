@@ -70,39 +70,7 @@ module ExcelFiles=
                          }
             }
 
-    let toFrequencyPlane (xsYs:(float*float)[]) =
-        if Array.length xsYs < 2 then
-            Array.empty
-        else
-            let xs = Seq.map fst xsYs
-            let ys = Seq.map snd xsYs
-        
-            let interpolation = new MathNet.Numerics.Interpolation.Algorithms.LinearSplineInterpolation(xs |> Seq.sort |> Seq.toArray,ys |> Seq.toArray)
 
-            //ensure even sample rate
-            let tmin = xsYs.[0] |> fst
-            let tmax = xsYs.[xsYs.Length-1] |> fst
-
-            let deltat = tmax - tmin
-            let delta = deltat/(xsYs.Length |> double)
-            let xsys= 
-                seq {
-                    for x in tmin..delta..tmax do 
-                        yield (x,interpolation.Interpolate(x))
-                }
-
-            
-            let complexs = Seq.map (fun (_,y) -> new Numerics.Complex(y,0.0)) xsys |> Array.ofSeq
-        
-            let deltaF = 1.0/deltat
-            MathNet.Numerics.IntegralTransforms.Transform.FourierForward(complexs)
-
-            let toBpm i = i*60.0
-            let pm = Seq.mapi (fun i (x:Numerics.Complex) -> (deltaF*(double i) |> toBpm ,x.Magnitude)) complexs |> Array.ofSeq
-            pm 
-            |> fun (x:(float*float)[]) -> x.[0..(x.Length/2+1)]
-            |> Array.filter (fun (x,_) -> 0.0 < x  && x < 300.0)
-            |> Array.sortBy fst
 
     let parseFileXls (file:IO.FileInfo) =
         let workBook = ExcelLibrary.SpreadSheet.Workbook.Load(file.FullName)
