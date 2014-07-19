@@ -88,6 +88,9 @@ type TXTHelperViewModel() as this=
         let plotModelHz = new OxyPlot.PlotModel()
         let series = new OxyPlot.Series.LineSeries()
 
+        let nnInput = NeuralNetwork.NeuralNetworkInput.fromFFTSeries freqData
+        NeuralNetwork.adsf (nnInput)
+
         if Seq.isEmpty freqData |> not then
 
             plotModelHz.Series.Add series

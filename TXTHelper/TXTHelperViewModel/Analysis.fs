@@ -5,6 +5,9 @@ open FSharpx.Collections
 
 module Analysis=
     
+
+
+        
     let hzToBpm i = i*60.0
 
     //In: (fst = t(s), snd = y value)

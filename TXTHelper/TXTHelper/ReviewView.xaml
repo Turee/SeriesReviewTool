@@ -1,0 +1,98 @@
+﻿<UserControl x:Class="TXTHelper.ReviewView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             xmlns:oxy="http://oxyplot.codeplex.com"
+             xmlns:tk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             d:DesignHeight="700" d:DesignWidth="1200">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220"></ColumnDefinition>
+            <ColumnDefinition></ColumnDefinition>
+            <ColumnDefinition Width="220"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>
+            <RowDefinition Height="70"></RowDefinition>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="2.0*"></RowDefinition>
+                <RowDefinition></RowDefinition>
+            </Grid.RowDefinitions>
+            <oxy:Plot  Title="Current series t(s)" Grid.Row="0" Model="{Binding Path=CurrentPlotModel}" />
+            <oxy:Plot Title="Current series f(BPM)" Grid.Row="1" Model="{Binding Path=CurrentPlotModelHz}" />
+        </Grid>
+
+        <Grid Grid.Column="0" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"></RowDefinition>
+                <RowDefinition></RowDefinition>
+                <RowDefinition Height="30"></RowDefinition>
+            </Grid.RowDefinitions>
+            <ListView Grid.Row="1" FontSize="10" ItemsSource="{Binding Path=ExcelFiles,UpdateSourceTrigger=PropertyChanged}" SelectedItem="{Binding Path=SelectedExcelFile}" SelectedIndex="{Binding Path=SelectedFileIndex,Mode=OneWay,UpdateSourceTrigger=PropertyChanged}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <Border>
+                            <TextBlock Text="{Binding Path=DisplayString}"></TextBlock>
+                        </Border>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center" Text="{Binding Path=SeriesToReviewText}"></TextBlock>
+            <Button Command="{Binding Path=RefreshExcelDirectoryCommand}" Grid.Row="2">Refresh</Button>
+        </Grid>
+        <Grid Grid.Column="2" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="30"></RowDefinition>
+                <RowDefinition></RowDefinition>
+                <RowDefinition Height="30"></RowDefinition>
+            </Grid.RowDefinitions>
+
+            <TextBlock VerticalAlignment="Center" HorizontalAlignment="Center"  Grid.Row="0" Text="{Binding Path=ReviewedSeriesText}"></TextBlock>
+            <ListView Grid.Row="1" FontSize="10" ItemsSource="{Binding Path=TextFiles,UpdateSourceTrigger=PropertyChanged}">
+                <ListView.ItemTemplate >
+                    <DataTemplate>
+                        <Border BorderThickness="0" Background="{Binding Path=Background}">
+                            <TextBlock Text="{Binding Path=DisplayString}"></TextBlock>
+                        </Border>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+            <Button Grid.Row="2" Command="{Binding Path=RefreshTextDirectoryCommand}">Refresh</Button>
+
+        </Grid>
+
+        <Grid Grid.Column="0" Grid.Row="1" >
+            <Grid.RowDefinitions>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+            </Grid.RowDefinitions>
+            <TextBlock TextWrapping="Wrap" Text="{Binding Path=InPath,UpdateSourceTrigger=PropertyChanged}"></TextBlock>
+            <Button Grid.Row="1" Margin="5,5,5,5"  Command="{Binding Path=SelectExcelDirectoryCommand}">Select xlsx directory</Button>
+        </Grid>
+
+        <Grid Grid.Column="2" Grid.Row="1" >
+            <Grid.RowDefinitions>
+                <RowDefinition></RowDefinition>
+                <RowDefinition></RowDefinition>
+            </Grid.RowDefinitions>
+            <TextBlock TextWrapping="Wrap" Text="{Binding Path=OutPath,UpdateSourceTrigger=PropertyChanged}"></TextBlock>
+            <Button Margin="5,5,5,5" Grid.Row="1" Command="{Binding Path=SelecteTextDirectoryCommand}">Select text directory</Button>
+        </Grid>
+
+        <Grid Grid.Column="1" Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition></ColumnDefinition>
+                <ColumnDefinition></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <Button Margin="5,5,5,5"  Grid.Column="1" Command="{Binding Path=AcceptSeriesCommand}" Content="Accept (F2)">
+            </Button>
+            <Button Margin="5,5,5,5"  Command="{Binding Path=DiscardSeriesCommand}" Content="Discard (F1)">
+            </Button>
+        </Grid>
+    </Grid>
+</UserControl>
