@@ -4,15 +4,15 @@
         xmlns:oxy="http://oxyplot.codeplex.com"
         xmlns:tk="http://schemas.xceed.com/wpf/xaml/toolkit"
         xmlns:rt="clr-namespace:TXTHelper"
-        Title="Series review tool 0.2" Height="700" Width="1200">
+        Title="Series review tool 0.3" Height="700" Width="1200">
     <TabControl>
         <TabItem Header="Review">
             <rt:ReviewView></rt:ReviewView>
         </TabItem>
         
-        <TabItem Header="Neural network">
+        <!--<TabItem Header="Neural network" >
             <rt:NeuralNetworkView></rt:NeuralNetworkView>
-        </TabItem>
+        </TabItem>-->
         <TabItem Header="Tools">
             <rt:ToolsView></rt:ToolsView>
         </TabItem>
