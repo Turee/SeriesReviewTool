@@ -172,6 +172,7 @@
     <None Include="packages.config" />
     <Compile Include="ObservableObject.fs" />
     <Compile Include="Analysis.fs" />
+    <Compile Include="ToolsViewModel.fs" />
     <Compile Include="NeuralNetwork.fs" />
     <Compile Include="ExcelFiles.fs" />
     <Compile Include="TXTHelperViewModel.fs" />

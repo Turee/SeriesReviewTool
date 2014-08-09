@@ -1,0 +1,30 @@
+﻿<UserControl x:Class="TXTHelper.ToolsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:tk="http://schemas.xceed.com/wpf/xaml/toolkit"
+             mc:Ignorable="d" 
+             d:DesignHeight="700" d:DesignWidth="1200">
+    <Grid>
+        <GroupBox Height="auto" Width="600" Header="Multiply and interpolate evenly">
+            <StackPanel Orientation="Vertical">
+                <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal">
+                        <Label>Multiplier</Label>
+                        <tk:DoubleUpDown Width="100" Value="{Binding Path=MultiplierValue}"/>
+                    </StackPanel>
+                    
+                    <StackPanel Orientation="Horizontal">
+                        <Label>Include average less than</Label>
+                        <tk:DoubleUpDown Width="100" Value="{Binding Path=FilterLessThan}"/>
+                    </StackPanel>
+                </StackPanel>
+                
+                <Button Margin="10,10" Height="30" Command="{Binding Path=SelectTxtFileFolderCommand}">Select folder</Button>
+                <DataGrid Height="200" AutoGenerateColumns="True" ItemsSource="{Binding Path=TxtFileInfos}"></DataGrid>
+                <Button Height="30" Margin="10,10" Command="{Binding Path=ExecuteMultiplyCommand}">Execute</Button>
+            </StackPanel>
+        </GroupBox>
+    </Grid>
+</UserControl>

@@ -7,6 +7,24 @@ module Analysis=
     
 
 
+
+    let interpolateEvenly (xsYs:(float*float)[] )=
+        let xs = Seq.map fst xsYs
+        let ys = Seq.map snd xsYs
+        
+        let interpolation = new MathNet.Numerics.Interpolation.Algorithms.LinearSplineInterpolation(xs |> Seq.sort |> Seq.toArray,ys |> Seq.toArray)
+
+        //ensure even sample rate
+        let tmin = xsYs.[0] |> fst
+        let tmax = xsYs.[xsYs.Length-1] |> fst
+
+        let deltat = tmax - tmin
+        let delta = deltat/(xsYs.Length |> double)
+        
+        seq {
+            for x in tmin..delta..tmax do 
+                yield (x,interpolation.Interpolate(x))
+        }
         
     let hzToBpm i = i*60.0
 
@@ -16,25 +34,14 @@ module Analysis=
         if Array.length xsYs < 2 then
             Array.empty
         else
-            let xs = Seq.map fst xsYs
-            let ys = Seq.map snd xsYs
-        
-            let interpolation = new MathNet.Numerics.Interpolation.Algorithms.LinearSplineInterpolation(xs |> Seq.sort |> Seq.toArray,ys |> Seq.toArray)
-
-            //ensure even sample rate
+           
             let tmin = xsYs.[0] |> fst
             let tmax = xsYs.[xsYs.Length-1] |> fst
 
-            let deltat = tmax - tmin
-            let delta = deltat/(xsYs.Length |> double)
-            let xsys= 
-                seq {
-                    for x in tmin..delta..tmax do 
-                        yield (x,interpolation.Interpolate(x))
-                }
+            let xsys = interpolateEvenly xsYs
 
             let complexs = Seq.map (fun (_,y) -> new Numerics.Complex(y,0.0)) xsys |> Array.ofSeq
-        
+            let deltat = tmax - tmin
             let deltaF = 1.0/deltat
             MathNet.Numerics.IntegralTransforms.Transform.FourierForward(complexs)
 

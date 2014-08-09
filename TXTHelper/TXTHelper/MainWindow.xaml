@@ -13,6 +13,9 @@
         <TabItem Header="Neural network">
             <rt:NeuralNetworkView></rt:NeuralNetworkView>
         </TabItem>
+        <TabItem Header="Tools">
+            <rt:ToolsView></rt:ToolsView>
+        </TabItem>
     </TabControl>
 
 </Window>

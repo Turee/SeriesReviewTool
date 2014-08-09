@@ -9,16 +9,6 @@ open System.Windows.Input
 open OxyPlot.Annotations
 open ExcelFiles
 
-module Helpers=
-    let createCommand action canExecute=
-        let event1 = Event<_, _>()
-        {
-            new ICommand with
-                member this.CanExecute(obj) = canExecute(obj)
-                member this.Execute(obj) = action(obj)
-                member this.add_CanExecuteChanged(handler) = event1.Publish.AddHandler(handler)
-                member this.remove_CanExecuteChanged(handler) = event1.Publish.AddHandler(handler)
-        }
 
 
 type TXTFileVM =
@@ -51,7 +41,7 @@ type TXTFileVM =
         let str = 
             vm.seriesXsYs
             |> Seq.map (fun (x,y) ->
-                sprintf "%s\t%s" (string x) (string y)
+                sprintf "%s\t%s" (string (x*1000.0)) (string y)
             )
             |> fun lines -> System.String.Join(System.Environment.NewLine,lines)
         file.Write(str)

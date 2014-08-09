@@ -66,7 +66,7 @@ module ExcelFiles=
                             ExcelFileVM.filePath = file.FullName
                             ExcelFileVM.file = file
                             seriesName = header
-                            seriesXsYs = Array.zip xdata ydata
+                            seriesXsYs = Array.zip xdata ydata |> Analysis.interpolateEvenly |> Array.ofSeq
                          }
             }
 
@@ -101,7 +101,7 @@ module ExcelFiles=
                 ExcelFileVM.filePath = file.FullName
                 ExcelFileVM.file = file
                 seriesName = header
-                seriesXsYs = Seq.zip xdata ydata |> Array.ofSeq
+                seriesXsYs = Seq.zip xdata ydata |> Array.ofSeq |> Analysis.interpolateEvenly |> Array.ofSeq
             }
         )
         
