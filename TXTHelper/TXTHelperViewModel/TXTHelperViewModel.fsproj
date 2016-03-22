@@ -61,56 +61,21 @@
       <HintPath>..\packages\ExcelPackageF.1.0.5\lib\net40\ExcelPackageF.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="FSharp.Control.AsyncSeq">
+      <HintPath>..\packages\FSharp.Control.AsyncSeq.1.13\lib\net40\FSharp.Control.AsyncSeq.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="FSharp.Core, Version=4.4.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+    <Reference Include="FSharpx.Async">
+      <HintPath>..\packages\FSharpx.Async.1.12.0\lib\net40\FSharpx.Async.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="FSharpx.Collections">
-      <HintPath>..\packages\FSharpx.Collections.1.9.2\lib\net35\FSharpx.Collections.dll</HintPath>
+      <HintPath>..\packages\FSharpx.Collections.1.14.0\lib\net40\FSharpx.Collections.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="FSharpx.Core">
-      <HintPath>..\packages\FSharpx.Core.1.8.41\lib\40\FSharpx.Core.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FSharpx.TypeProviders">
-      <HintPath>..\packages\FSharpx.TypeProviders.1.8.41\lib\40\FSharpx.TypeProviders.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FSharpx.TypeProviders.AppSettings">
-      <HintPath>..\packages\FSharpx.TypeProviders.AppSettings.1.8.41\lib\40\FSharpx.TypeProviders.AppSettings.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FSharpx.TypeProviders.Excel">
-      <HintPath>..\packages\FSharpx.TypeProviders.Excel.1.8.41\lib\40\FSharpx.TypeProviders.Excel.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FSharpx.TypeProviders.Graph">
-      <HintPath>..\packages\FSharpx.TypeProviders.Graph.1.8.41\lib\40\FSharpx.TypeProviders.Graph.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FSharpx.TypeProviders.Machine">
-      <HintPath>..\packages\FSharpx.TypeProviders.Machine.1.8.41\lib\40\FSharpx.TypeProviders.Machine.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FSharpx.TypeProviders.Management">
-      <HintPath>..\packages\FSharpx.TypeProviders.Management.1.8.41\lib\40\FSharpx.TypeProviders.Management.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FSharpx.TypeProviders.Management.DesignTime">
-      <HintPath>..\packages\FSharpx.TypeProviders.Management.1.8.41\lib\40\FSharpx.TypeProviders.Management.DesignTime.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FSharpx.TypeProviders.Math">
-      <HintPath>..\packages\FSharpx.TypeProviders.Math.1.8.41\lib\40\FSharpx.TypeProviders.Math.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FSharpx.TypeProviders.Regex">
-      <HintPath>..\packages\FSharpx.TypeProviders.Regex.1.8.41\lib\40\FSharpx.TypeProviders.Regex.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FSharpx.TypeProviders.Xaml">
-      <HintPath>..\packages\FSharpx.TypeProviders.Xaml.1.8.41\lib\40\FSharpx.TypeProviders.Xaml.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="FSharpx.TypeProviders.Xrm">
-      <HintPath>..\packages\FSharpx.TypeProviders.Xrm.1.8.41\lib\40\FSharpx.TypeProviders.Xrm.dll</HintPath>
+    <Reference Include="FSharpx.Extras">
+      <HintPath>..\packages\FSharpx.Extras.1.10.3\lib\40\FSharpx.Extras.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="MathNet.Numerics">
@@ -138,9 +103,6 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>True</Private>
-    </Reference>
     <Reference Include="Ookii.Dialogs.Wpf">
       <HintPath>..\packages\Ookii.Dialogs.1.0\lib\net35\Ookii.Dialogs.Wpf.dll</HintPath>
       <Private>True</Private>
@@ -167,13 +129,11 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Library1.fs" />
     <None Include="Script.fsx" />
     <None Include="packages.config" />
     <Compile Include="ObservableObject.fs" />
     <Compile Include="Analysis.fs" />
     <Compile Include="ToolsViewModel.fs" />
-    <Compile Include="NeuralNetwork.fs" />
     <Compile Include="ExcelFiles.fs" />
     <Compile Include="TXTHelperViewModel.fs" />
     <None Include="app.config" />

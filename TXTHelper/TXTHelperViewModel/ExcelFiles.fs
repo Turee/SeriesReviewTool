@@ -3,7 +3,7 @@ open System
 open ExcelPackageF
 open FSharpx
 open FSharpx.Collections
-
+open FSharpx.Extras
 module ExcelFiles=
     type ExcelFileVM=
         {
@@ -22,6 +22,12 @@ module ExcelFiles=
         member this.DiscardedFileName =
             sprintf "%s_%s.txt.discarded"  this.file.Name this.seriesName  |> fun x -> x.Replace(" ","_")
     
+    let parseDouble str = 
+        let res = ref 0.0
+        if Double.TryParse(str, res) then
+            Some !res
+        else
+            None
 
     let parseFileXlsx (file:IO.FileInfo)=
             //let fileWithPath = System.IO.Path.Combine(path,file.Name)
@@ -32,7 +38,7 @@ module ExcelFiles=
             let xdata =
                 seq {
                     for row in (Excel.getColumn 1 wsheet) |> Seq.skip 1 |> Seq.takeWhile (String.IsNullOrEmpty >> not) do
-                        yield (Double.parse(row.Replace(",",".")))
+                        yield (parseDouble (row.Replace(",",".")))
 
                 }
                 |> Seq.map (Option.getOrElse Double.NaN)
@@ -54,7 +60,7 @@ module ExcelFiles=
                             |> Seq.skip 1
                             |> Seq.takeWhile (String.IsNullOrEmpty >> not)
                             |> Seq.map (fun v ->
-                                Double.parse (v.Replace(",","."))
+                                parseDouble (v.Replace(",","."))
                             )
                             |> Seq.map (Option.getOrElse Double.NaN)
                         yield(header,ydata |> Array.ofSeq)
@@ -80,7 +86,7 @@ module ExcelFiles=
             wsheet.Cells.Rows
             |> Seq.map (fun row ->
                 [0..row.Value.LastColIndex] 
-                |> Seq.map (fun i -> row.Value.GetCell(i).StringValue.Replace(',','.') |> Double.parse) 
+                |> Seq.map (fun i -> row.Value.GetCell(i).StringValue.Replace(',','.') |> parseDouble) 
                 |> Seq.map (Option.getOrElse Double.NaN)  
                 |> Array.ofSeq     
             )

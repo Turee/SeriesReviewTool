@@ -34,6 +34,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="FSharp.Core, Version=4.4.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
     <Reference Include="Microsoft.WindowsAPICodePack">
       <HintPath>..\packages\WindowsAPICodePack-Core.1.1\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
     </Reference>
@@ -83,9 +84,6 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="NeuralNetworkView.xaml.cs">
-      <DependentUpon>NeuralNetworkView.xaml</DependentUpon>
-    </Compile>
     <Compile Include="ReviewView.xaml.cs">
       <DependentUpon>ReviewView.xaml</DependentUpon>
     </Compile>
@@ -104,10 +102,6 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="NeuralNetworkView.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="ReviewView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
